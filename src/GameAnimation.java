@@ -225,10 +225,11 @@ public class GameAnimation extends JFrame implements KeyListener {
                         rpButton.setText("Resume");
                     }
                     else {
-                        isPaused=false;
-                        stopTiming = false;
                         animationPanel.startTheAnimation();
+                        refreshTime();
                         rpButton.setText("Pause");
+                        stopTiming = false;
+                        isPaused=false;
                     }
                 }
                 else {
@@ -244,7 +245,7 @@ public class GameAnimation extends JFrame implements KeyListener {
         this.mainPanel.add(player1Label);
         this.mainPanel.add(player2Label);
         player1Label.setFont(new Font("Arial",Font.PLAIN,30));
-        player1Label.setBounds(650,-10,1000,100);
+        player1Label.setBounds(600,-10,1000,100);
         player2Label.setFont(new Font("Arial",Font.PLAIN,30));
         player2Label.setBounds(50,-10,1000,100);
 
@@ -281,7 +282,6 @@ public class GameAnimation extends JFrame implements KeyListener {
         this.animationPanel.startTheAnimation();
     }
      long refreshTime(){
-
          if (ball.getVx()* ball.getVx() + ball.getVy()*ball.getVy()<250000 && !(ball.getVx()==0 && ball.getVy()==0)){
              float alpha = 500f/(float) Math.pow(ball.getVx()*ball.getVx()+ball.getVy()*ball.getVy(),0.5);
              ball.getBody().setLinearVelocity(new Vec2(ball.getVx()*alpha,ball.getVy()*alpha));
@@ -314,7 +314,7 @@ public class GameAnimation extends JFrame implements KeyListener {
                     fireBallAppearance=false;
                 }
             long seconds = timeLimit/1000-(System.currentTimeMillis()-startTime)/1000;
-            lastSecond = seconds;
+            lastSecond = System.currentTimeMillis();
             if (seconds<20){
                 timeLabel.setForeground(Color.red);
             }
@@ -325,9 +325,7 @@ public class GameAnimation extends JFrame implements KeyListener {
             timeLabel.setText("0"+seconds/60+":"+second);
         }
         else{
-            if (lastSecond!=timeLimit/1000-(System.currentTimeMillis()-startTime)/1000){
-                startTime+=1000;
-            }
+            startTime+=System.currentTimeMillis()-lastSecond;
         }
          return lastSecond;
     }
