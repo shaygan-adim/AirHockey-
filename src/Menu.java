@@ -20,6 +20,7 @@ public abstract class Menu extends JFrame{
                 g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
             }
         };
+        this.setIconImage(Loader.getIcon().getImage());
 
         this.setContentPane(this.mainPanel);
 

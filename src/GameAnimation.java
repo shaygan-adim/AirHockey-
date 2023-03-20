@@ -1,4 +1,3 @@
-import com.sun.tools.javac.Main;
 import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.*;
@@ -23,6 +22,14 @@ public class GameAnimation extends JFrame implements KeyListener {
     private JButton rpButton;
     private boolean isGameDone = false;
     private boolean isPaused = false;
+    private boolean mirrorWallsEnabled = false;
+    private boolean[] bigGoalEnabled = {false,false};
+    private boolean[] fireBallEnabled = {false,false};
+    private boolean bigGoalAppearance,fireBallAppearance,mirrorWallsAppearance;
+    private long lastVanishedPowerTime = 0;
+    private long lastAppearanceTime = 0;
+    private int powerX,powerY;
+    private int lastKick = 0;
     private JPanel mainPanel;
     private CircleBody mallet1;
     private CircleBody mallet2;
@@ -30,6 +37,7 @@ public class GameAnimation extends JFrame implements KeyListener {
     private final String player1Name;
     private final String player2Name;
     private AnimationPanel animationPanel;
+    private CircleBody ball;
     private final boolean[] keyPressed = {false,false,false,false,false,false,false,false};
     GameAnimation(String color1, String color2, String player1Name ,String player2Name, boolean timeLimited, int goalLimit,boolean twoMargin,double timeLimit){
         this.timeLimit = (long) timeLimit;
@@ -56,6 +64,7 @@ public class GameAnimation extends JFrame implements KeyListener {
     void initFrame(){
 
         this.mainPanel = (JPanel)this.getContentPane();
+        this.setIconImage(Loader.getIcon().getImage());
 
         this.setTitle("Air Hockey +");
         this.setSize(814,700);
@@ -68,7 +77,10 @@ public class GameAnimation extends JFrame implements KeyListener {
     void initPhysics(String color1, String color2){
         final short CATEGORY_1 = 0x0001;
         final short CATEGORY_2 = 0x0002;
+        final short CATEGORY_3 = 0x0004;
+        final short CATEGORY_4 = 0x0008;
         final short CATEGORY_1_AND_2 = CATEGORY_1 | CATEGORY_2;
+        final short CATEGORY_2_AND_3 = CATEGORY_3 | CATEGORY_2;
         if (color1.equals("red")){
             this.mallet1Image = Loader.getRedMallet();
         }
@@ -135,7 +147,7 @@ public class GameAnimation extends JFrame implements KeyListener {
         fixtureDef3.friction = 1f;
         fixtureDef3.restitution = 0.0f;
         fixtureDef3.filter.categoryBits = CATEGORY_2;
-        fixtureDef3.filter.maskBits = CATEGORY_2;
+        fixtureDef3.filter.maskBits = CATEGORY_2 | CATEGORY_3 | CATEGORY_4;
         wall5.createFixture(fixtureDef3);
         wall6.createFixture(fixtureDef3);
         wall1.setTransform(new Vec2(-52,-20),0);
@@ -145,7 +157,8 @@ public class GameAnimation extends JFrame implements KeyListener {
         wall5.setTransform(new Vec2(805/2-47,-20),0);
         wall6.setTransform(new Vec2(805/2-5,-20),0);
 
-        CircleBody ball = new CircleBody(20, 50, 377, 224, world, CATEGORY_1, CATEGORY_2);
+        CircleBody ball = new CircleBody(20, 50, 377, 224, world, CATEGORY_1, (short) (CATEGORY_3 | CATEGORY_4 | CATEGORY_2));
+        this.ball = ball;
         Random random = new Random();
         int num1 = random.nextInt(201) + 300;
         int num2 = random.nextInt(201) - 500;
@@ -155,8 +168,8 @@ public class GameAnimation extends JFrame implements KeyListener {
         num2 = random.nextInt(201) - 500;
         randomNumber = random.nextBoolean() ? num1 : num2;
         ball.setVy(randomNumber);
-        this.mallet1 = new CircleBody(300,23,700,224,world,CATEGORY_2);
-        this.mallet2 = new CircleBody(300,23,47,224,world,CATEGORY_2);
+        this.mallet1 = new CircleBody(300,23,700,224,world,CATEGORY_3);
+        this.mallet2 = new CircleBody(300,23,47,224,world,CATEGORY_4);
         this.animationPanel.setBall(ball);
         this.animationPanel.setMallet1(this.mallet1);
         this.animationPanel.setMallet2(this.mallet2);
@@ -268,7 +281,38 @@ public class GameAnimation extends JFrame implements KeyListener {
         this.animationPanel.startTheAnimation();
     }
      long refreshTime(){
-        if (!stopTiming){
+
+         if (ball.getVx()* ball.getVx() + ball.getVy()*ball.getVy()<250000 && !(ball.getVx()==0 && ball.getVy()==0)){
+             float alpha = 500f/(float) Math.pow(ball.getVx()*ball.getVx()+ball.getVy()*ball.getVy(),0.5);
+             ball.getBody().setLinearVelocity(new Vec2(ball.getVx()*alpha,ball.getVy()*alpha));
+         }
+            if (!stopTiming){
+                if (getTimePassed()-lastVanishedPowerTime>9 && getTimePassed()-lastAppearanceTime>9 && !isBigGoalAppearance() && !isMirrorWallsAppearance() && !isFireBallAppearance()){
+                    lastAppearanceTime=getTimePassed();
+                    Random random = new Random();
+                    int powerChoice = random.nextInt(1,4);
+                    if (powerChoice==1){
+                        bigGoalAppearance=true;
+                        powerX = random.nextInt(100,700);
+                        powerY = random.nextInt(50,450);
+                    }
+                    if (powerChoice==2){
+                        mirrorWallsAppearance = true;
+                        powerX = random.nextInt(100,700);
+                        powerY = random.nextInt(50,450);
+                    }
+                    if (powerChoice==3){
+                        fireBallAppearance = true;
+                        powerX = random.nextInt(100,700);
+                        powerY = random.nextInt(50,450);
+                    }
+                }
+                if (getTimePassed()-lastAppearanceTime>9 && getTimePassed()-lastVanishedPowerTime>9){
+                    lastVanishedPowerTime = getTimePassed();
+                    bigGoalAppearance=false;
+                    mirrorWallsAppearance=false;
+                    fireBallAppearance=false;
+                }
             long seconds = timeLimit/1000-(System.currentTimeMillis()-startTime)/1000;
             lastSecond = seconds;
             if (seconds<20){
@@ -290,6 +334,54 @@ public class GameAnimation extends JFrame implements KeyListener {
 
     void sleepConfigure(){
         startTime+=2000;
+    }
+
+    public String getColor1() {
+        return color1;
+    }
+
+    public long getLastVanishedPowerTime() {
+        return lastVanishedPowerTime;
+    }
+
+    public long getLastAppearanceTime() {
+        return lastAppearanceTime;
+    }
+
+    public void setGoalLimit(int goalLimit) {
+        this.goalLimit = goalLimit;
+    }
+
+    public void setBigGoalEnabled(boolean[] bigGoalEnabled) {
+        this.bigGoalEnabled = bigGoalEnabled;
+    }
+
+    public void setFireBallEnabled(boolean[] fireBallEnabled) {
+        this.fireBallEnabled = fireBallEnabled;
+    }
+
+    public void setMirrorWallsEnabled(boolean mirrorWallsEnabled) {
+        this.mirrorWallsEnabled = mirrorWallsEnabled;
+    }
+
+    public void setBigGoalAppearance(boolean bigGoalAppearance) {
+        this.bigGoalAppearance = bigGoalAppearance;
+    }
+
+    public void setFireBallAppearance(boolean fireBallAppearance) {
+        this.fireBallAppearance = fireBallAppearance;
+    }
+
+    public void setMirrorWallsAppearance(boolean mirrorWallsAppearance) {
+        this.mirrorWallsAppearance = mirrorWallsAppearance;
+    }
+
+    public void setLastVanishedPowerTime(long lastVanishedPowerTime) {
+        this.lastVanishedPowerTime = lastVanishedPowerTime;
+    }
+
+    public void setLastAppearanceTime(long lastAppearanceTime) {
+        this.lastAppearanceTime = lastAppearanceTime;
     }
 
     void refreshScores(boolean gameIsDone){
@@ -372,6 +464,61 @@ public class GameAnimation extends JFrame implements KeyListener {
     }
     boolean isGameDone(){
         return isGameDone;
+    }
+    long getTimePassed(){
+        return (System.currentTimeMillis()-startTime)/1000;
+    }
+
+    public boolean isTwoMargin() {
+        return twoMargin;
+    }
+
+    public boolean isBigGoalEnabaled() {
+        return bigGoalEnabled[0]||bigGoalEnabled[1];
+    }
+
+    public boolean isFireBallEnabled() {
+        return fireBallEnabled[0]||fireBallEnabled[1];
+    }
+
+    public boolean isMirrorWallsEnabled() {
+        return mirrorWallsEnabled;
+    }
+
+    public boolean isBigGoalAppearance() {
+        return bigGoalAppearance;
+    }
+
+    public boolean isFireBallAppearance() {
+        return fireBallAppearance;
+    }
+
+    public boolean isMirrorWallsAppearance() {
+        return mirrorWallsAppearance;
+    }
+
+    public boolean[] getBigGoalEnabled() {
+        return bigGoalEnabled;
+    }
+
+    public boolean[] getFireBallEnabled() {
+        return fireBallEnabled;
+    }
+
+    public int getPowerX() {
+        return powerX;
+    }
+
+    public int getPowerY() {
+        return powerY;
+    }
+
+    public int getLastKick() {
+        return lastKick;
+    }
+
+    public void setLastKick(int lastKick) {
+        this.lastKick = lastKick;
     }
 
     @Override

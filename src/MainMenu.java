@@ -43,9 +43,9 @@ public class MainMenu extends Menu{
         // Center the buttons vertically
         centerPanel.add(Box.createVerticalGlue());
         centerPanel.add(newGameButton);
-        centerPanel.add(Box.createVerticalStrut(20)); // add vertical space between buttons
+        centerPanel.add(Box.createVerticalStrut(20));
         centerPanel.add(historyButton);
-        centerPanel.add(Box.createVerticalStrut(20)); // add vertical space between buttons
+        centerPanel.add(Box.createVerticalStrut(20));
         centerPanel.add(exitButton);
         centerPanel.add(Box.createVerticalGlue());
 

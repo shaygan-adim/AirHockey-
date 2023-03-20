@@ -1,4 +1,5 @@
 import javax.imageio.ImageIO;
+import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
@@ -13,6 +14,8 @@ public class Loader {
 
     private static Image goalTable1,goalTable2;
     private static Image winTable1,winTable2;
+    private static Image leftBigTable,rightBigTable,bothBigTable;
+    private static ImageIcon icon;
 
     private static String menuBackgroundPath = "Resources/MenuBackground.jpg";
 
@@ -51,6 +54,21 @@ public class Loader {
             winTable2Image = ImageIO.read(new File(Loader.animationPath+"/WinTable2.jpg"));
         } catch (IOException ignored) {}
         Loader.winTable2 = winTable2Image;
+        Image LeftBigTableImage = null;
+        try {
+            LeftBigTableImage = ImageIO.read(new File(Loader.animationPath+"/LeftBigTable.jpg"));
+        } catch (IOException ignored) {}
+        Loader.leftBigTable = LeftBigTableImage;
+        Image RightBigTableImage = null;
+        try {
+            RightBigTableImage = ImageIO.read(new File(Loader.animationPath+"/RightBigTable.jpg"));
+        } catch (IOException ignored) {}
+        Loader.rightBigTable = RightBigTableImage;
+        Image BothBigTable = null;
+        try {
+            BothBigTable = ImageIO.read(new File(Loader.animationPath+"/BothBigTable.jpg"));
+        } catch (IOException ignored) {}
+        Loader.bothBigTable = BothBigTable;
         Image redMalletImage = null;
         try {
             redMalletImage = ImageIO.read(new File(Loader.animationPath+"/RedMallet.png"));
@@ -71,6 +89,7 @@ public class Loader {
             blueMalletImage = ImageIO.read(new File(Loader.animationPath+"/BlueMallet.png"));
         } catch (IOException ignored) {}
         Loader.blueMallet = blueMalletImage;
+        Loader.icon = new ImageIcon("Resources/Icon.jpg");
     }
 
     static Image getTable() {
@@ -111,5 +130,21 @@ public class Loader {
 
     static Image getMenuBackground() {
         return Loader.menuBackground;
+    }
+
+    public static ImageIcon getIcon() {
+        return icon;
+    }
+
+    public static Image getLeftBigTable() {
+        return leftBigTable;
+    }
+
+    public static Image getRightBigTable() {
+        return rightBigTable;
+    }
+
+    public static Image getBothBigTable() {
+        return bothBigTable;
     }
 }

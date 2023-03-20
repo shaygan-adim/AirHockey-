@@ -98,17 +98,17 @@ public class ModeMenu extends Menu {
         timeLimitedOption.setPreferredSize(new Dimension(100,50));
         centerPanel.add(Box.createVerticalGlue());
         centerPanel.add(timeLimitedOption);
-        centerPanel.add(Box.createVerticalStrut(20)); // add vertical space between buttons
+        centerPanel.add(Box.createVerticalStrut(20));
         centerPanel.add(helperPanel1);
-        centerPanel.add(Box.createVerticalStrut(20)); // add vertical space between buttons
+        centerPanel.add(Box.createVerticalStrut(20));
         centerPanel.add(goalLimitedOption);
-        centerPanel.add(Box.createVerticalStrut(20)); // add vertical space between buttons
+        centerPanel.add(Box.createVerticalStrut(20));
         centerPanel.add(helperPanel2);
-        centerPanel.add(Box.createVerticalStrut(20)); // add vertical space between buttons
+        centerPanel.add(Box.createVerticalStrut(20));
         centerPanel.add(twomarginOption);
-        centerPanel.add(Box.createVerticalStrut(20)); // add vertical space between buttons
+        centerPanel.add(Box.createVerticalStrut(20));
         centerPanel.add(nextButton);
-        centerPanel.add(Box.createVerticalStrut(10)); // add vertical space between buttons
+        centerPanel.add(Box.createVerticalStrut(10));
         centerPanel.add(backButton);
         centerPanel.add(Box.createVerticalGlue());
 

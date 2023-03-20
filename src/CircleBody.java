@@ -47,6 +47,7 @@ public class CircleBody {
         massData.mass = this.mass;
         body.createFixture(fixtureDef);
         body.setMassData(massData);
+        body.setSleepingAllowed(false);
     }
 
     void setX(float x) {

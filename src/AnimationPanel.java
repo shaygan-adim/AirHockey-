@@ -1,3 +1,4 @@
+import org.jbox2d.dynamics.Filter;
 import org.jbox2d.dynamics.World;
 
 import java.awt.*;
@@ -24,6 +25,10 @@ public class AnimationPanel extends JPanel  {
 
     private final Image winTable1Image = Loader.getWinTable1();
     private final Image winTable2Image = Loader.getWinTable2();
+
+    private final Image leftBigImage = Loader.getLeftBigTable();
+    private final Image rightBigImage = Loader.getRightBigTable();
+    private final Image bothBigImage = Loader.getBothBigTable();
     private final GameAnimation gameAnimation;
 
     private boolean isGoalTime = false;
@@ -69,9 +74,21 @@ public class AnimationPanel extends JPanel  {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         gameAnimation.setFocusable(true);
-        g.setColor(Color.RED);
         if (!isGoalTime && isWinTime==0)
-            g.drawImage(tableImage,0,0,this);
+            if (!gameAnimation.isBigGoalEnabaled()){
+                g.drawImage(tableImage,0,0,this);
+            }
+            else{
+                if (gameAnimation.getBigGoalEnabled()[0] && !gameAnimation.getBigGoalEnabled()[1]){
+                    g.drawImage(leftBigImage,0,0,this);
+                }
+                if (gameAnimation.getBigGoalEnabled()[1] && !gameAnimation.getBigGoalEnabled()[0]){
+                    g.drawImage(rightBigImage,0,0,this);
+                }
+                if (gameAnimation.getBigGoalEnabled()[1] && gameAnimation.getBigGoalEnabled()[0]){
+                    g.drawImage(bothBigImage,0,0,this);
+                }
+            }
         else if(isWinTime==0){
             if (lastGoal==1)
                 g.drawImage(goalTable1Image,0,0,this);
@@ -85,11 +102,35 @@ public class AnimationPanel extends JPanel  {
                 g.drawImage(winTable2Image,0,0,this);
         }
         if (isWinTime==0){
+            if (gameAnimation.isBigGoalAppearance() || gameAnimation.isMirrorWallsAppearance() ||gameAnimation.isFireBallAppearance()){
+                g.setColor(Color.BLACK);
+                g.fillOval(gameAnimation.getPowerX(), gameAnimation.getPowerY(), 20+(int)((gameAnimation.getTimePassed()-gameAnimation.getLastAppearanceTime())*3),20+(int)((gameAnimation.getTimePassed()-gameAnimation.getLastAppearanceTime())*3));
+                g.setColor(Color.WHITE);
+                if (gameAnimation.isBigGoalAppearance()){
+                    g.drawString("Big Goal",gameAnimation.getPowerX(), gameAnimation.getPowerY());
+                }
+                if (gameAnimation.isMirrorWallsAppearance()){
+                    g.drawString("Mirror Walls",gameAnimation.getPowerX(), gameAnimation.getPowerY());
+                }
+                if (gameAnimation.isFireBallAppearance()){
+                    g.drawString("Fire Ball",gameAnimation.getPowerX(), gameAnimation.getPowerY());
+                }
+            }
+            if (this.ballDeclared){
+                if (gameAnimation.isMirrorWallsEnabled()){
+                    g.setColor(Color.WHITE);
+                }
+                else{
+                    g.setColor(Color.RED);
+                }
+                g.fillOval((int)this.ball.getX(), (int)this.ball.getY(), (int)this.ball.getRadius(), (int)this.ball.getRadius());
+                if (gameAnimation.isFireBallEnabled()){
+                    g.setColor(Color.ORANGE);
+                    g.fillOval((int)this.ball.getX()+5, (int)this.ball.getY()+5, (int)this.ball.getRadius()-10, (int)this.ball.getRadius()-10);
+                }
+            }
             g.drawImage(mallet1Image,(int)this.mallet1.getX()-23,(int)this.mallet1.getY()-23,this);
             g.drawImage(mallet2Image,(int)this.mallet2.getX()-23,(int)this.mallet2.getY()-23,this);
-            if (this.ballDeclared){
-                g.fillOval((int)this.ball.getX(), (int)this.ball.getY(), (int)this.ball.getRadius(), (int)this.ball.getRadius());
-            }
         }
         if(gameAnimation.isTimeLimited()) {
             long t = gameAnimation.refreshTime();
@@ -129,7 +170,30 @@ public class AnimationPanel extends JPanel  {
     public CircleBody getBall() {
         return this.ball;
     }
+
+    public CircleBody getMallet1() {
+        return mallet1;
+    }
+
+    public CircleBody getMallet2() {
+        return mallet2;
+    }
+
+    public GameAnimation getGameAnimation() {
+        return gameAnimation;
+    }
+
     void goalForPlayer1(){
+        if (gameAnimation.isFireBallEnabled()){
+            Filter filter = new Filter();
+            filter.categoryBits = 0x0001;
+            filter.maskBits = (short) (0x0004 | 0x0008 | 0x0002);
+            ball.getBody().getFixtureList().setFilterData(filter);
+        }
+        boolean[] enabled = {false,false};
+        gameAnimation.setBigGoalEnabled(enabled);
+        gameAnimation.setFireBallEnabled(enabled);
+        gameAnimation.setMirrorWallsEnabled(false);
         lastGoal = 1;
         player1Goals++;
         if (player1Goals==gameAnimation.getGoalLimit()){
@@ -165,6 +229,16 @@ public class AnimationPanel extends JPanel  {
         }
     }
     void goalForPlayer2(){
+        if (gameAnimation.isFireBallEnabled()){
+            Filter filter = new Filter();
+            filter.categoryBits = 0x0001;
+            filter.maskBits = (short) (0x0004 | 0x0008 | 0x0002);
+            ball.getBody().getFixtureList().setFilterData(filter);
+        }
+        boolean[] enabled = {false,false};
+        gameAnimation.setBigGoalEnabled(enabled);
+        gameAnimation.setFireBallEnabled(enabled);
+        gameAnimation.setMirrorWallsEnabled(false);
         lastGoal = 2;
         player2Goals++;
         if (player2Goals==gameAnimation.getGoalLimit()){
